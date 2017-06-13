@@ -5,36 +5,49 @@
 #define N 10
 #define M 20
 
-#define BLANKVAL 0 // blank value
-#define SNAKEVAL 1 // snake value
-#define FOODVAL 2  // food value
+/* #define BLANKVAL 0 // blank value */
+/* #define SNAKEVAL 1 // snake value */
+/* #define FOODVAL 2  // food value */
 
-#define BLANKSTR "_" // blank string
-#define SNAKESTR "*" // snake string
-#define FOODSTR "."  // food string
+/* #define BLANKSTR "_" // blank string */
+/* #define SNAKESTR "*" // snake string */
+/* #define FOODSTR "."  // food string */
+
+#define BLANK '_'
+#define SNAKE '*'
+#define FOOD  '.'
 
 struct Point {
     int x;
     int y;
 };
 
-void display_field(int field[N][M])
+enum Direction {UP, DOWN, RIGHT, LEFT};
+
+struct Snake {
+    struct Point cells[N * M];
+    int len;
+    enum Direction dir;
+};
+
+void display_field(char field[N][M])
 {
     int i = 0;
     int j;
-    printf("\n");
+    // printf("\n");
+    system("clear");
     while (i < N)
     {
         j = 0;
         while (j < M)
         {
-            int cell = field[i][j];
-            if (cell == BLANKVAL) {
-                printf(BLANKSTR);
-            } else if (cell == SNAKEVAL) {
-                printf(SNAKESTR);
-            } else if (cell == FOODVAL) {
-                printf(FOODSTR);
+            char cell = field[i][j];
+            if (cell == BLANK) {
+                printf("%c", BLANK);
+            } else if (cell == SNAKE) {
+                printf("%c", SNAKE);
+            } else if (cell == FOOD) {
+                printf("%c", FOOD);
             }
                 
             j = j + 1;
@@ -44,13 +57,13 @@ void display_field(int field[N][M])
     }
 }
 
-struct Point place_food(int field[N][M], struct Point old_food_point)
+struct Point place_food(char field[N][M], struct Point old_food_point)
 {
     int food_x = rand() % N;
     int food_y = rand() % M;
 
-    field[food_x][food_y] = FOODVAL;
-    field[old_food_point.x][old_food_point.y] = BLANKVAL;
+    field[food_x][food_y] = FOOD;
+    field[old_food_point.x][old_food_point.y] = BLANK;
 
     struct Point new_food_point;
     new_food_point.x = food_x;
@@ -58,43 +71,37 @@ struct Point place_food(int field[N][M], struct Point old_food_point)
     return new_food_point;
 }
 
-struct Point initialize_snake(int field[N][M], struct Point snake_point)
+void initialize_field(char field[N][M], struct Point snake_point, struct Point food_point)
 {
     int i = 0;
     int j;
-    int food_x = rand() % N;
-    int food_y = rand() % M;
     while (i < N)
     {
         j = 0;
         while (j < M)
         {
             if ((i == snake_point.x) && (j == snake_point.y)) {
-                field[i][j] = SNAKEVAL;
-            } else if ((i == food_x) && (j == food_y)) {
-                field[i][j] = FOODVAL;
+                field[i][j] = SNAKE;
+            } else if ((i == food_point.x) && (j == food_point.y)) {
+                field[i][j] = FOOD;
             } else {
-                field[i][j] = BLANKVAL;
+                field[i][j] = BLANK;
             }
             j = j + 1;
         }
         i = i + 1;
     }
-    
-    struct Point food_point;
-    food_point.x = food_x;
-    food_point.y = food_y;
-    return food_point;
 }
 
-void main_loop(int field[N][M], struct Point food_point_arg)
+void move_snake()
 {
-    struct Point food_point = food_point_arg;
+    
+}
 
+void main_loop(char field[N][M], struct Point food_point, struct Snake* snakep)
+{
     char ch;
     int ishit = 0;
-
-    display_field(field);
     
     nonblock(1);
     while(!ishit)
@@ -109,28 +116,39 @@ void main_loop(int field[N][M], struct Point food_point_arg)
                 ishit = 1;
             } else {
                 // now it just updates food location (which is useless)
-                food_point = place_food(field, food_point);
-                display_field(field);
                 ishit = 0;
+                food_point = place_food(field, food_point);
             }
         }
+        display_field(field);
+        usleep(50000); 
     }
     nonblock(0);
 }
 
 int main()
-{
-    srand(time(NULL)); // to make new random values for food each time
-    
-    int field[N][M];
+{   
+    char field[N][M];
     
     struct Point snake_initial_point;
-    snake_initial_point.x = N/2;
-    snake_initial_point.y = M/2;
+    snake_initial_point.x = N / 2;
+    snake_initial_point.y = M / 2;
+
+    struct Point food_initial_point;
+    srand(time(NULL)); // to make new random values for food each time
+    food_initial_point.x = rand() % N;
+    food_initial_point.y = rand() % M;
     
-    struct Point food_point = initialize_snake(field, snake_initial_point);
+    initialize_field(field, snake_initial_point, food_initial_point);
+
+    struct Snake snake;
+    snake.cells[0] = snake_initial_point;
+    snake.len = 1;
+    snake.dir = UP;
+    struct Snake* snakep = &snake;
     
-    main_loop(field, food_point);
+    display_field(field);
+    main_loop(field, food_initial_point, snakep);
     
     return 0;
 }
