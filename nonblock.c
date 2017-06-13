@@ -39,7 +39,7 @@ void nonblock(int state)
  
 }
 
-void test_nonblock()
+void _test_nonblock()
 {
     char c;
     int i = 0;
