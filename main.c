@@ -24,26 +24,23 @@ struct Snake {
 
 void display_field(char field[N][M])
 {
-    int i = 0;
+    int i;
     int j;
     system("clear");
-    while (i < N)
+    for (i = 0; i < N; i++)
     {
-        j = 0;
-        while (j < M)
+        for (j = 0; j < M; j++)
         {
-            printf("%c", field[i][j]);
-            j = j + 1;
+            printf("%c", field[i][j]);            
         }
         printf("\n");
-        i = i + 1;
     }
 }
 
 int validate_food_point(struct Point food_point, struct Snake snake)
 {
-    int i = 0;
-    while (i < snake.len)
+    int i;
+    for (i = 0; i < snake.len; i++)
     {
         if ((snake.cells[i].x == food_point.x) && (snake.cells[i].y == food_point.y))
         {
@@ -70,12 +67,11 @@ struct Point place_food(char field[N][M], struct Snake snake)
 
 void update_field(char field[N][M], struct Snake snake, struct Point food_point)
 {
-    int i = 0;
+    int i;
     int j;
-    while (i < N)
+    for (i = 0; i < N; i++)
     {
-        j = 0;
-        while (j < M)
+        for (j = 0; j < M; j++)
         {
             if ((i == food_point.x) && (j == food_point.y))
             {
@@ -85,21 +81,18 @@ void update_field(char field[N][M], struct Snake snake, struct Point food_point)
             {
                 field[i][j] = BLANK;
             }
-            j = j + 1;
         }
-        i = i + 1;
     }
 
-    i = 0;
-    while (i < snake.len)
+    for (i = 0; i < snake.len; i++)
     {
         field[snake.cells[i].x][snake.cells[i].y]= SNAKE;
-        i = i + 1;
     }
 }
 
 void adjust_snake(struct Snake* snakep, int x, int y)
 {
+    int i;
     
 }
 
