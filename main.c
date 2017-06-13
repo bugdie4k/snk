@@ -90,9 +90,30 @@ void update_field(char field[N][M], struct Snake snake, struct Point food_point)
     }
 }
 
+void game_over()
+{
+    system("clear");
+    printf("GAME OVER.\nPress any key.");
+    system ("/bin/stty raw");
+    getchar();
+    system ("/bin/stty cooked");
+    system("clear");
+    exit(0);
+}
+
 void adjust_snake(struct Snake* snakep, int x, int y)
 {
     int i;
+    for (i = 0; i < snakep->len; i++)
+    {
+        snakep->cells[i].x += x;
+        snakep->cells[i].y += y;
+        if ((snakep->cells[i].x >= N) || (snakep->cells[i].x < 0) ||
+            (snakep->cells[i].y >= M) || (snakep->cells[i].y < 0))
+        {
+            game_over();
+        }
+    }
     
 }
 
@@ -100,19 +121,19 @@ int move_snake(struct Snake* snakep)
 {
     if (snakep->dir == UP)
     {
-        
+        adjust_snake(snakep, -1, 0);
     }
     else if (snakep->dir == DOWN)
     {
-        
+        adjust_snake(snakep, 1, 0);
     }
     else if (snakep->dir == RIGHT)
     {
-        
+        adjust_snake(snakep, 0, 1);
     }
     else if (snakep->dir == LEFT)
     {
-        
+        adjust_snake(snakep, 0, -1);
     }
     return 0; 
 }
@@ -138,16 +159,19 @@ void main_loop(char field[N][M], struct Point food_point, struct Snake* snakep)
             else
             {
                 ishit = 0;
-                food_eaten = move_snake(snakep);
-                if (food_eaten)
-                {
-                    food_point = place_food(field, *snakep);
-                }
+            }
+        }
+        else
+        {
+            food_eaten = move_snake(snakep);
+            if (food_eaten)
+            {
+                food_point = place_food(field, *snakep);
             }
         }
         update_field(field, *snakep, food_point);
         display_field(field);
-        usleep(50000); 
+        usleep(100000); // 0.1s
     }
     nonblock(0);
 }
