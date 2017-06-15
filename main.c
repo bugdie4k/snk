@@ -5,7 +5,7 @@
 #define N 10
 #define M 20
 
-#define BLANK '_'
+#define BLANK ' '
 #define SNAKE '*'
 #define FOOD  '.'
 
