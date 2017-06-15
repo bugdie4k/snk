@@ -1,5 +1,5 @@
 #include <math.h>
-#include <time.h> 
+#include <time.h>
 #include "nonblock.h"
 
 #define N 10
@@ -16,19 +16,39 @@
 
 #define QUITCH  'q'
 
-struct Point {
+#define SCORE_LEN_RATIO 2
+
+#ifdef DEBUG
+
+#include <limits.h>
+
+FILE *logfile;
+
+void log_header()
+{
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    fprintf(logfile, "---------------------\n");
+    fprintf(logfile, "SNK IS RUN BY:      %s\n", getenv("LOGNAME"));
+    fprintf(logfile, "STARTED LOGGING AT: %02d.%02d.%04d %02d:%02d\n", t->tm_mday, t->tm_mon+1, t->tm_year + 1900, t->tm_hour,t->tm_min);
+    fprintf(logfile, "---------------------\n\n");
+    fflush(logfile);
+}
+#endif
+
+typedef struct {
     int x;
     int y;
-};
+} Point;
 
-enum Direction {UP, DOWN, RIGHT, LEFT};
+typedef enum {UP, DOWN, RIGHT, LEFT} Direction;
 
-struct Snake {
-    struct Point cells[N * M];
+typedef struct {
+    Point cells[N * M];
     int len;
-    enum Direction dir;
+    Direction dir;
     int score;
-};
+} Snake;
 
 void display_field(char field[N][M])
 {
@@ -45,7 +65,7 @@ void display_field(char field[N][M])
     }
 }
 
-int validate_food_point(struct Point food_point, struct Snake snake)
+int validate_food_point(Point food_point, Snake snake)
 {
     int i;
     for (i = 0; i < snake.len; i++)
@@ -58,9 +78,9 @@ int validate_food_point(struct Point food_point, struct Snake snake)
     return 1;
 }
 
-struct Point place_food(char field[N][M], struct Snake snake)
+Point place_food(char field[N][M], Snake snake)
 {
-    struct Point new_food_point;
+    Point new_food_point;
     do
     {
         new_food_point.x = rand() % N;;
@@ -73,7 +93,7 @@ struct Point place_food(char field[N][M], struct Snake snake)
     return new_food_point;
 }
 
-void update_field(char field[N][M], struct Snake snake, struct Point food_point)
+void update_field(char field[N][M], Snake snake, Point food_point)
 {
     int i;
     int j;
@@ -114,13 +134,13 @@ void game_over(int score)
     exit(0);
 }
 
-void adjust_snake(struct Snake* snakep, int x, int y)
+void adjust_snake(Snake* snakep, int x, int y)
 {
-    struct Point prev = snakep->cells[0];
+    Point prev = snakep->cells[0];
     snakep->cells[0].x += x;
     snakep->cells[0].y += y;
     
-    struct Point tmp;
+    Point tmp;
     int i;
     for (i = 1; i < snakep->len; i++)
     {
@@ -130,7 +150,19 @@ void adjust_snake(struct Snake* snakep, int x, int y)
     }
 }
 
-int points_eq(struct Point p1, struct Point p2)
+// push new point from head
+void grow_snake(Snake* snakep, Point food_point)
+{
+    int i;
+    for (i = snakep->len; i > 0; i--)
+    {
+        snakep->cells[i] = snakep->cells[i - 1];
+    }
+    snakep->cells[0] = food_point;
+    snakep->len++;
+}
+
+int points_eq(Point p1, Point p2)
 {
     if ((p1.x == p2.x) && (p1.y == p2.y))
     {
@@ -139,35 +171,91 @@ int points_eq(struct Point p1, struct Point p2)
     return 0;
 }
 
-int move_snake(struct Snake* snakep, struct Point food_point)
+int if_point_exceeds_field(Point point)
 {
+    return ((point.x >= N) || (point.x < 0) ||
+            (point.y >= M) || (point.y < 0));
+}
+
+int if_snake_hit_itself(Snake snake, Point moved_head)
+{
+    int i;
+    for (i = 3; i < snake.len - 1; i++)
+    {
+        if (points_eq(snake.cells[i], moved_head))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int move_snake(Snake* snakep, Point food_point)
+{   
+    int dx;
+    int dy;
+    
     switch (snakep->dir)
     {
-    case UP: adjust_snake(snakep, -1, 0);
+    case UP:
+        dx = -1;
+        dy = 0;
         break;
-    case DOWN: adjust_snake(snakep, 1, 0);
+    case DOWN:
+        dx = 1;
+        dy = 0;
         break;
-    case RIGHT: adjust_snake(snakep, 0, 1);
+    case RIGHT:
+        dx = 0;
+        dy = 1;
         break;
-    case LEFT: adjust_snake(snakep, 0, -1);
+    case LEFT:
+        dx = 0;
+        dy = -1;
         break;
     }
-    
-    if ((snakep->cells[0].x >= N) || (snakep->cells[0].x < 0) ||
-        (snakep->cells[0].y >= M) || (snakep->cells[0].y < 0))
+
+    #ifdef DEBUG
+    fprintf(logfile, "MOVE: dx = %2d, dy = %2d\n", dx, dy); fflush(logfile);
+    #endif
+
+    Point moved_head;
+    moved_head.x = snakep->cells[0].x + dx;
+    moved_head.y = snakep->cells[0].y + dy;
+
+    int exceeds = if_point_exceeds_field(moved_head);
+    int hit_itself = if_snake_hit_itself(*snakep, moved_head);
+    if (exceeds || hit_itself)
     {
+        #ifdef DEBUG
+        fprintf(logfile, "  GAME OVER: exceeds = %d, hit-itself = %d, score = %d, len = %d\n", exceeds, hit_itself, snakep->score, snakep->len); fflush(logfile);
+        #endif
+        
         game_over(snakep->score);
     }
 
-    if (points_eq(snakep->cells[0], food_point))
+    if (points_eq(moved_head, food_point))
     {
-        snakep->score++;
+        #ifdef DEBUG
+        fprintf(logfile, "  FOOD EATEN\n"); fflush(logfile);
+        #endif
+
+        if (++snakep->score % SCORE_LEN_RATIO == 0)
+        {
+            grow_snake(snakep, food_point);   
+        }
+        else
+        {
+            adjust_snake(snakep, dx, dy);
+        }
         return 1;
     }
+    
+    adjust_snake(snakep, dx, dy);
     return 0; 
 }
 
-void main_loop(char field[N][M], struct Point food_point, struct Snake* snakep)
+void main_loop(char field[N][M], Point food_point, Snake* snakep)
 {
     char ch;
     int ishit = 0; // it shows if a key was pressed and if to quit at the same time
@@ -183,32 +271,25 @@ void main_loop(char field[N][M], struct Point food_point, struct Snake* snakep)
             ch = fgetc(stdin);
             if (ch == QUITCH)
             {
-                ishit = 1;
+                game_over(snakep->score);
             }
             else if ((ch == UPCH) && (snakep->dir != DOWN))
             {
                 snakep->dir = UP;
-                ishit = 0;
             }
             else if ((ch == DOWNCH) && (snakep->dir != UP))
             {
                 snakep->dir = DOWN;
-                ishit = 0;
             }
             else if ((ch == RIGHTCH) && (snakep->dir != LEFT))
             {
                 snakep->dir = RIGHT;
-                ishit = 0;
             }
             else if ((ch == LEFTCH) && (snakep->dir != RIGHT))
             {
                 snakep->dir = LEFT;
-                ishit = 0;
             }
-            else
-            {
-                ishit = 0;
-            }
+            ishit = 0;
         }
         else
         {
@@ -226,19 +307,27 @@ void main_loop(char field[N][M], struct Point food_point, struct Snake* snakep)
 }
 
 int main()
-{   
+{
+    #ifdef DEBUG
+    char logfile_name[PATH_MAX]; // from limits.h
+    getcwd(logfile_name, sizeof(logfile_name));
+    sprintf(logfile_name, "%s/snk_log.txt", logfile_name);
+    logfile = fopen(logfile_name, "w");
+    log_header();
+    #endif
+        
     char field[N][M];
     
-    struct Point snake_initial_point;
+    Point snake_initial_point;
     snake_initial_point.x = N / 2;
     snake_initial_point.y = M / 2;
 
-    struct Point food_initial_point;
+    Point food_initial_point;
     srand(time(NULL)); // to make new random values for food each time
     food_initial_point.x = rand() % N;
     food_initial_point.y = rand() % M;
 
-    struct Snake snake;
+    Snake snake;
     snake.cells[0] = snake_initial_point;
     snake.len = 1;
     snake.dir = UP;
@@ -246,10 +335,14 @@ int main()
     
     update_field(field, snake, food_initial_point);
 
-    struct Snake* snakep = &snake;
+    Snake* snakep = &snake;
     
     display_field(field);
     main_loop(field, food_initial_point, snakep);
+
+    #ifdef DEBUG
+    fclose(logfile);
+    #endif
     
     return 0;
 }
