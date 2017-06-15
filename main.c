@@ -9,14 +9,14 @@
 #define SNAKE '*'
 #define FOOD  '.'
 
-#define UPCH    'w'
-#define DOWNCH  's'
-#define RIGHTCH 'd'
-#define LEFTCH  'a'
+#define UP_CH    'w'
+#define DOWN_CH  's'
+#define RIGHT_CH 'd'
+#define LEFT_CH  'a'
 
 #define QUITCH  'q'
 
-#define SCORE_LEN_RATIO 2
+#define SCORE_LEN_RATIO 1
 
 #ifdef DEBUG
 
@@ -50,19 +50,39 @@ typedef struct {
     int score;
 } Snake;
 
-void display_field(char field[N][M])
+void display_upper_margin()
+{
+    printf("┌");
+    int i;
+    for (i = 0; i < M; i++) printf("─");
+    printf("┐\n");
+}
+
+void display_lower_margin()
+{
+    printf("└");
+    int i;
+    for (i = 0; i < M; i++) printf("─");
+    printf("┘\n");
+}
+
+void display_field(char field[N][M], int score)
 {
     int i;
     int j;
     system("clear");
+    display_upper_margin();
     for (i = 0; i < N; i++)
     {
+        printf("│");
         for (j = 0; j < M; j++)
         {
-            printf("%c", field[i][j]);            
+            printf("%c", field[i][j]);
         }
-        printf("\n");
+        printf("│\n");
     }
+    display_lower_margin();
+    printf("SCORE: \033[31m%4d\033[0m\n", score);
 }
 
 int validate_food_point(Point food_point, Snake snake)
@@ -118,14 +138,9 @@ void update_field(char field[N][M], Snake snake, Point food_point)
     }
 }
 
-void game_over(int score)
+void game_over()
 {
-    system("clear");
-    printf(" *** GAME OVER ***\n\n");
-    printf("YOUR SCORE IS\n");
-    printf("\033[31m");
-    printf("%d\n\n", score);
-    printf("\033[0m");
+    printf("\n *** GAME OVER ***\n\n");
     printf("Press any key to exit\n");
     system ("/bin/stty raw");
     getchar();
@@ -231,7 +246,7 @@ int move_snake(Snake* snakep, Point food_point)
         fprintf(logfile, "  GAME OVER: exceeds = %d, hit-itself = %d, score = %d, len = %d\n", exceeds, hit_itself, snakep->score, snakep->len); fflush(logfile);
         #endif
         
-        game_over(snakep->score);
+        game_over();
     }
 
     if (points_eq(moved_head, food_point))
@@ -271,21 +286,22 @@ void main_loop(char field[N][M], Point food_point, Snake* snakep)
             ch = fgetc(stdin);
             if (ch == QUITCH)
             {
-                game_over(snakep->score);
+                display_field(field, snakep->score);
+                game_over();
             }
-            else if ((ch == UPCH) && (snakep->dir != DOWN))
+            else if ((ch == UP_CH) && (snakep->dir != DOWN))
             {
                 snakep->dir = UP;
             }
-            else if ((ch == DOWNCH) && (snakep->dir != UP))
+            else if ((ch == DOWN_CH) && (snakep->dir != UP))
             {
                 snakep->dir = DOWN;
             }
-            else if ((ch == RIGHTCH) && (snakep->dir != LEFT))
+            else if ((ch == RIGHT_CH) && (snakep->dir != LEFT))
             {
                 snakep->dir = RIGHT;
             }
-            else if ((ch == LEFTCH) && (snakep->dir != RIGHT))
+            else if ((ch == LEFT_CH) && (snakep->dir != RIGHT))
             {
                 snakep->dir = LEFT;
             }
@@ -300,7 +316,7 @@ void main_loop(char field[N][M], Point food_point, Snake* snakep)
             }
         }
         update_field(field, *snakep, food_point);
-        display_field(field);
+        display_field(field, snakep->score);
         usleep(200000); // 0.2s
     }
     nonblock(0);
@@ -337,7 +353,7 @@ int main()
 
     Snake* snakep = &snake;
     
-    display_field(field);
+    display_field(field, snake.score);
     main_loop(field, food_initial_point, snakep);
 
     #ifdef DEBUG
