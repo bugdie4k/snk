@@ -36,19 +36,27 @@ void log_header()
 }
 #endif
 
-typedef struct {
+typedef struct
+{
     int x;
     int y;
-} Point;
+}
+    Point;
 
-typedef enum {UP, DOWN, RIGHT, LEFT} Direction;
+typedef enum
+{
+    UP, DOWN, RIGHT, LEFT
+}
+    Direction;
 
-typedef struct {
+typedef struct
+{
     Point cells[N * M];
     int len;
     Direction dir;
     int score;
-} Snake;
+}
+    Snake;
 
 void display_upper_margin()
 {
