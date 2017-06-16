@@ -17,5 +17,7 @@ So this is just a bad snake game.
  ![Dy highscore](https://user-images.githubusercontent.com/22116479/27205286-92ee1302-5238-11e7-9bfc-3c6f4e9b2e89.png "My highscore (snake in grass)")
   
 Try to beat it )  
-  
+
+Run it with `make run`.  
 Keys are `WASD`. `Q` to quit.  
+
