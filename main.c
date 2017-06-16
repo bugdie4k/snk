@@ -14,7 +14,7 @@
 #define RIGHT_CH 'd'
 #define LEFT_CH  'a'
 
-#define QUITCH  'q'
+#define QUITCH   'q'
 
 #define SCORE_LEN_RATIO 1
 
@@ -85,12 +85,12 @@ void display_field(char field[N][M], int score)
     printf("SCORE: \033[31m%4d\033[0m\n", score);
 }
 
-int validate_food_point(Point food_point, Snake snake)
+int validate_food_point(Point food_point, Snake* snakep)
 {
     int i;
-    for (i = 0; i < snake.len; i++)
+    for (i = 0; i < snakep->len; i++)
     {
-        if ((snake.cells[i].x == food_point.x) && (snake.cells[i].y == food_point.y))
+        if ((snakep->cells[i].x == food_point.x) && (snakep->cells[i].y == food_point.y))
         {
             return 0;
         }
@@ -98,7 +98,7 @@ int validate_food_point(Point food_point, Snake snake)
     return 1;
 }
 
-Point place_food(char field[N][M], Snake snake)
+Point place_food(char field[N][M], Snake* snakep)
 {
     Point new_food_point;
     do
@@ -106,14 +106,14 @@ Point place_food(char field[N][M], Snake snake)
         new_food_point.x = rand() % N;;
         new_food_point.y = rand() % M;
     }
-    while(!validate_food_point(new_food_point, snake));
+    while(!validate_food_point(new_food_point, snakep));
     
     field[new_food_point.x][new_food_point.y] = FOOD;
 
     return new_food_point;
 }
 
-void update_field(char field[N][M], Snake snake, Point food_point)
+void update_field(char field[N][M], Snake* snakep, Point food_point)
 {
     int i;
     int j;
@@ -132,9 +132,9 @@ void update_field(char field[N][M], Snake snake, Point food_point)
         }
     }
 
-    for (i = 0; i < snake.len; i++)
+    for (i = 0; i < snakep->len; i++)
     {
-        field[snake.cells[i].x][snake.cells[i].y]= SNAKE;
+        field[snakep->cells[i].x][snakep->cells[i].y]= SNAKE;
     }
 }
 
@@ -192,12 +192,12 @@ int if_point_exceeds_field(Point point)
             (point.y >= M) || (point.y < 0));
 }
 
-int if_snake_hit_itself(Snake snake, Point moved_head)
+int if_snake_hit_itself(Snake* snakep, Point moved_head)
 {
     int i;
-    for (i = 3; i < snake.len - 1; i++)
+    for (i = 3; i < snakep->len - 1; i++)
     {
-        if (points_eq(snake.cells[i], moved_head))
+        if (points_eq(snakep->cells[i], moved_head))
         {
             return 1;
         }
@@ -239,7 +239,7 @@ int move_snake(Snake* snakep, Point food_point)
     moved_head.y = snakep->cells[0].y + dy;
 
     int exceeds = if_point_exceeds_field(moved_head);
-    int hit_itself = if_snake_hit_itself(*snakep, moved_head);
+    int hit_itself = if_snake_hit_itself(snakep, moved_head);
     if (exceeds || hit_itself)
     {
         #ifdef DEBUG
@@ -312,10 +312,10 @@ void main_loop(char field[N][M], Point food_point, Snake* snakep)
             food_eaten = move_snake(snakep, food_point);
             if (food_eaten)
             {
-                food_point = place_food(field, *snakep);
+                food_point = place_food(field, snakep);
             }
         }
-        update_field(field, *snakep, food_point);
+        update_field(field, snakep, food_point);
         display_field(field, snakep->score);
         usleep(200000); // 0.2s
     }
@@ -348,10 +348,10 @@ int main()
     snake.len = 1;
     snake.dir = UP;
     snake.score = 0;
-    
-    update_field(field, snake, food_initial_point);
 
     Snake* snakep = &snake;
+    
+    update_field(field, snakep, food_initial_point);
     
     display_field(field, snake.score);
     main_loop(field, food_initial_point, snakep);
