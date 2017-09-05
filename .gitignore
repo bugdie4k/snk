@@ -1,3 +1,13 @@
+# executable 
+snk
+
+# gtags 
+GPATH
+GRTAGS
+GTAGS
+GSYMS
+
+# logfile
 snk_log.txt
 
 # Created by https://www.gitignore.io/api/c,emacs,linux,git
@@ -121,7 +131,3 @@ flycheck_*.el
 .nfs*
 
 # End of https://www.gitignore.io/api/c,emacs,linux,git
-snk
-GPATH
-GRTAGS
-GTAGS
