@@ -234,7 +234,7 @@ int if_point_exceeds_field(Point point)
 int if_snake_hit_itself(Snake* snakep, Point moved_head)
 {
     int i;
-    for (i = 3; i < snakep->len - 1; i++)
+    for (i = 3; i < snakep->len - 1; ++i)
     {
         if (points_eq(snakep->cells[i], moved_head))
         {
