@@ -80,11 +80,16 @@ typedef struct
 }
     Snake;
 
+Point* get_head(Snake* snakep)
+{
+    return &snakep->cells[snakep->len - 1];
+}
+
 void display_upper_margin()
 {
     printf(UPPER_LEFT_CORNER);
     int i;
-    for (i = 0; i < M; i++) printf(HORIZONTAL_MARGIN);
+    for (i = 0; i < M; ++i) printf(HORIZONTAL_MARGIN);
     printf("%s\n", UPPER_RIGHT_CORNER);
 }
 
@@ -92,7 +97,7 @@ void display_lower_margin()
 {
     printf(LOWER_LEFT_CORNER);
     int i;
-    for (i = 0; i < M; i++) printf(HORIZONTAL_MARGIN);
+    for (i = 0; i < M; ++i) printf(HORIZONTAL_MARGIN);
     printf("%s\n", LOWER_RIGHT_CORNER);
 }
 
@@ -102,10 +107,10 @@ void display_field(char field[N][M], int score)
     int j;
     system("clear");
     display_upper_margin();
-    for (i = 0; i < N; i++)
+    for (i = 0; i < N; ++i)
     {
         printf(VERTICAL_MARGIN);
-        for (j = 0; j < M; j++)
+        for (j = 0; j < M; ++j)
         {
             printf("%c", field[i][j]);
         }
@@ -118,7 +123,7 @@ void display_field(char field[N][M], int score)
 int validate_food_point(Point food_point, Snake* snakep)
 {
     int i;
-    for (i = 0; i < snakep->len; i++)
+    for (i = 0; i < snakep->len; ++i)
     {
         if ((snakep->cells[i].x == food_point.x) && (snakep->cells[i].y == food_point.y))
         {
@@ -147,9 +152,9 @@ void update_field(char field[N][M], Snake* snakep, Point food_point)
 {
     int i;
     int j;
-    for (i = 0; i < N; i++)
+    for (i = 0; i < N; ++i)
     {
-        for (j = 0; j < M; j++)
+        for (j = 0; j < M; ++j)
         {
             if ((i == food_point.x) && (j == food_point.y))
             {
@@ -162,15 +167,23 @@ void update_field(char field[N][M], Snake* snakep, Point food_point)
         }
     }
 
-    for (i = 0; i < snakep->len; i++)
+    for (i = 0; i < snakep->len; ++i)
     {
         field[snakep->cells[i].x][snakep->cells[i].y]= SNAKE;
     }
 }
 
-void game_over()
+void game_over(int exceeds, int hit_itself)
 {
     printf("\n *** GAME OVER ***\n\n");
+    if (exceeds)
+    {
+        printf("Snake hit the border\n\n");
+    }
+    else if (hit_itself)
+    {
+        printf("Snake hit itself\n\n");
+    }
     printf("Press ENTER to exit\n");
 
     char c;
@@ -180,15 +193,15 @@ void game_over()
     exit(0);
 }
 
-void adjust_snake(Snake* snakep, int x, int y)
+void adjust_snake(Snake* snakep, int dx, int dy)
 {
-    Point prev = snakep->cells[0];
-    snakep->cells[0].x += x;
-    snakep->cells[0].y += y;
+    Point prev = *get_head(snakep);
+    get_head(snakep)->x += dx;
+    get_head(snakep)->y += dy;
 
     Point tmp;
     int i;
-    for (i = 1; i < snakep->len; i++)
+    for (i = snakep->len - 2; i >= 0; --i)
     {
         tmp = snakep->cells[i];
         snakep->cells[i] = prev;
@@ -196,16 +209,11 @@ void adjust_snake(Snake* snakep, int x, int y)
     }
 }
 
-// push new point from head
+// add new point to the cells array
 void grow_snake(Snake* snakep, Point food_point)
 {
-    int i;
-    for (i = snakep->len; i > 0; i--)
-    {
-        snakep->cells[i] = snakep->cells[i - 1];
-    }
-    snakep->cells[0] = food_point;
-    snakep->len++;
+    ++snakep->len;
+    *get_head(snakep) = food_point;
 }
 
 int points_eq(Point p1, Point p2)
@@ -266,8 +274,8 @@ int move_snake(Snake* snakep, Point food_point)
     #endif
 
     Point moved_head;
-    moved_head.x = snakep->cells[0].x + dx;
-    moved_head.y = snakep->cells[0].y + dy;
+    moved_head.x = get_head(snakep)->x + dx;
+    moved_head.y = get_head(snakep)->y + dy;
 
     int exceeds = if_point_exceeds_field(moved_head);
     int hit_itself = if_snake_hit_itself(snakep, moved_head);
@@ -277,7 +285,7 @@ int move_snake(Snake* snakep, Point food_point)
         fprintf(logfile, "  GAME OVER: exceeds = %d, hit-itself = %d, score = %d, len = %d\n", exceeds, hit_itself, snakep->score, snakep->len); fflush(logfile);
         #endif
 
-        game_over();
+        game_over(exceeds, hit_itself);
     }
 
     if (points_eq(moved_head, food_point))
@@ -317,7 +325,7 @@ void main_loop(char field[N][M], Point food_point, Snake* snakep)
             if (ch == QUIT_CH)
             {
                 display_field(field, snakep->score);
-                game_over();
+                game_over(0, 0);
             }
             else if ((ch == UP_CH) && (snakep->dir != DOWN))
             {
@@ -347,7 +355,7 @@ void main_loop(char field[N][M], Point food_point, Snake* snakep)
         update_field(field, snakep, food_point);
         display_field(field, snakep->score);
 
-        usleep(MOVE_DELAY); // 0.2s
+        usleep(MOVE_DELAY);
     }
     nonblock(0);
 }
