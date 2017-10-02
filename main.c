@@ -20,9 +20,9 @@
 
 // ingame elements chars
 
-#define BLANK ' '
-#define SNAKE '*'
-#define FOOD  '.'
+#define BLANK '.'
+#define SNAKE '@'
+#define FOOD  '*'
 
 // controls
 
