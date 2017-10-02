@@ -2,7 +2,8 @@
 
 Was intended as a super simplistic C program to use it as an example to teach 13yo. 
 But it turned out to be more complicated than I thought it would be.  
-So this is just a bad snake game.
+
+So this is just a bad snake game.  
 
 #### My highscore
 
