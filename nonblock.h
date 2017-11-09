@@ -1,13 +1,7 @@
-#ifndef _NONBLOCK_H
-#define _NONBLOCK_H
-
-#include <stdio.h>   
-#include <stdlib.h>  
-#include <unistd.h>  
-#include <termios.h>
+#ifndef SNK_NONBLOCK_H_INCLUDED
+#define SNK_NONBLOCK_H_INCLUDED
 
 int kbhit();
 void nonblock();
-void test_nonblock();
 
-#endif
+#endif // SNK_NONBLOCK_H_INCLUDED

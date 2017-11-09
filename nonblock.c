@@ -1,7 +1,12 @@
-// shamelessly copied from
+// took it from
 // http://cc.byexamples.com/2007/04/08/non-blocking-user-input-in-loop-without-ncurses/
 
 #include "nonblock.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <termios.h>
 
 int kbhit()
 {
@@ -18,10 +23,10 @@ int kbhit()
 void nonblock(int state)
 {
     struct termios ttystate;
- 
+
     //get the terminal state
     tcgetattr(STDIN_FILENO, &ttystate);
- 
+
     if (state == 1)
     {
         //turn off canonical mode
@@ -36,30 +41,4 @@ void nonblock(int state)
     }
     //set the terminal attributes.
     tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
- 
-}
-
-void _test_nonblock()
-{
-    char c;
-    int i = 0;
- 
-    nonblock(1);
-    while(!i)
-    {
-        usleep(1);
-        i = kbhit();
-        if (i != 0)
-        {
-            c = fgetc(stdin);
-            if (c == 'q')
-                i = 1;
-            else
-                i = 0;
-        }
- 
-        printf("%c", c);
-    }
-    printf("\n you hit %c. \n",c);
-    nonblock(0);
 }

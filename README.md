@@ -7,7 +7,7 @@ So this is just a bad snake game.
 
 #### My highscore
 
- ![My highscore](https://user-images.githubusercontent.com/22116479/31084700-cd28a432-a79d-11e7-9d14-97cff2d55aad.png "My highscore")
+ ![My highscore](https://user-images.githubusercontent.com/22116479/32595960-67f7d654-c53a-11e7-8ded-c19821fe5397.png "My highscore")
   
 Try to beat it )  
 

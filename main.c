@@ -1,43 +1,51 @@
+#include "nonblock.h"
+
 #include <math.h>
 #include <time.h>
-#include "nonblock.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 /************************************************/
 
 // field size
 
-#define N 10
-#define M 20
+#define HEIGHT 10 // HEIGHT
+#define WIDTH 20 // WEIGHT
 
 // margins chars
 
-#define HORIZONTAL_MARGIN  "─"
-#define VERTICAL_MARGIN    "│"
-#define UPPER_LEFT_CORNER  "┌"
-#define UPPER_RIGHT_CORNER "┐"
-#define LOWER_LEFT_CORNER  "└"
-#define LOWER_RIGHT_CORNER "┘"
+static const char* HORIZONTAL_MARGIN  = "─";
+static const char* VERTICAL_MARGIN    = "│";
+static const char* UPPER_LEFT_CORNER  = "┌";
+static const char* UPPER_RIGHT_CORNER = "┐";
+static const char* LOWER_LEFT_CORNER  = "└";
+static const char* LOWER_RIGHT_CORNER = "┘";
 
 // ingame elements chars
 
-#define BLANK '.'
-#define SNAKE '@'
-#define FOOD  '*'
+static const char BLANK  = '.';
+static const char* BLANK2 = "..";
+static const char SNAKE = '@';
+static const char* SNAKE2 = "\x1b[42m  \x1b[0m";
+static const char FOOD = '*';
+static const char* FOOD2 = "\x1b[44m  \x1b[0m";
 
 // controls
 
-#define UP_CH    'w'
-#define DOWN_CH  's'
-#define RIGHT_CH 'd'
-#define LEFT_CH  'a'
+static const char UP_CH = 'w';
+static const char DOWN_CH = 's';
+static const char RIGHT_CH ='d';
+static const char LEFT_CH = 'a';
 
-#define QUIT_CH   'q'
+static const char QUIT_CH = 'q';
 
 // gameplay settings
 
-#define SCORE_LEN_RATIO 1
+static const int SCORE_LEN_RATIO = 1;
 
-#define MOVE_DELAY 200000 // ms
+static const int MOVE_DELAY = 200000; // ms
+
 
 /************************************************/
 
@@ -73,7 +81,7 @@ typedef enum
 
 typedef struct
 {
-    Point cells[N * M];
+    Point cells[HEIGHT * WIDTH];
     int len;
     Direction dir;
     int score;
@@ -89,7 +97,7 @@ void display_upper_margin()
 {
     printf(UPPER_LEFT_CORNER);
     int i;
-    for (i = 0; i < M; ++i) printf(HORIZONTAL_MARGIN);
+    for (i = 0; i < WIDTH; ++i) printf(HORIZONTAL_MARGIN);
     printf("%s\n", UPPER_RIGHT_CORNER);
 }
 
@@ -97,20 +105,20 @@ void display_lower_margin()
 {
     printf(LOWER_LEFT_CORNER);
     int i;
-    for (i = 0; i < M; ++i) printf(HORIZONTAL_MARGIN);
+    for (i = 0; i < WIDTH; ++i) printf(HORIZONTAL_MARGIN);
     printf("%s\n", LOWER_RIGHT_CORNER);
 }
 
-void display_field(char field[N][M], int score)
+void display_field(char field[HEIGHT][WIDTH], int score)
 {
     int i;
     int j;
     system("clear");
     display_upper_margin();
-    for (i = 0; i < N; ++i)
+    for (i = 0; i < HEIGHT; ++i)
     {
         printf(VERTICAL_MARGIN);
-        for (j = 0; j < M; ++j)
+        for (j = 0; j < WIDTH; ++j)
         {
             printf("%c", field[i][j]);
         }
@@ -133,13 +141,13 @@ int validate_food_point(Point food_point, Snake* snakep)
     return 1;
 }
 
-Point place_food(char field[N][M], Snake* snakep)
+Point place_food(char field[HEIGHT][WIDTH], Snake* snakep)
 {
     Point new_food_point;
     do
     {
-        new_food_point.x = rand() % N;;
-        new_food_point.y = rand() % M;
+        new_food_point.x = rand() % HEIGHT;;
+        new_food_point.y = rand() % WIDTH;
     }
     while(!validate_food_point(new_food_point, snakep));
 
@@ -148,13 +156,13 @@ Point place_food(char field[N][M], Snake* snakep)
     return new_food_point;
 }
 
-void update_field(char field[N][M], Snake* snakep, Point food_point)
+void update_field(char field[HEIGHT][WIDTH], Snake* snakep, Point food_point)
 {
     int i;
     int j;
-    for (i = 0; i < N; ++i)
+    for (i = 0; i < HEIGHT; ++i)
     {
-        for (j = 0; j < M; ++j)
+        for (j = 0; j < WIDTH; ++j)
         {
             if ((i == food_point.x) && (j == food_point.y))
             {
@@ -227,8 +235,8 @@ int points_eq(Point p1, Point p2)
 
 int if_point_exceeds_field(Point point)
 {
-    return ((point.x >= N) || (point.x < 0) ||
-            (point.y >= M) || (point.y < 0));
+    return ((point.x >= HEIGHT) || (point.x < 0) ||
+            (point.y >= WIDTH) || (point.y < 0));
 }
 
 int if_snake_hit_itself(Snake* snakep, Point moved_head)
@@ -309,7 +317,7 @@ int move_snake(Snake* snakep, Point food_point)
     return 0;
 }
 
-void main_loop(char field[N][M], Point food_point, Snake* snakep)
+void main_loop(char field[HEIGHT][WIDTH], Point food_point, Snake* snakep)
 {
     char ch;
     int ishit = 0; // it shows if a key was pressed and if to quit at the same time
@@ -370,16 +378,16 @@ int main()
     log_header();
     #endif
 
-    char field[N][M];
+    char field[HEIGHT][WIDTH];
 
     Point snake_initial_point;
-    snake_initial_point.x = N / 2;
-    snake_initial_point.y = M / 2;
+    snake_initial_point.x = HEIGHT / 2;
+    snake_initial_point.y = WIDTH / 2;
 
     Point food_initial_point;
     srand(time(NULL)); // to make new random values for food each time
-    food_initial_point.x = rand() % N;
-    food_initial_point.y = rand() % M;
+    food_initial_point.x = rand() % HEIGHT;
+    food_initial_point.y = rand() % WIDTH;
 
     Snake snake;
     snake.cells[0] = snake_initial_point;
