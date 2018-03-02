@@ -10,8 +10,8 @@
 
 // field size
 
-#define HEIGHT 15 // HEIGHT
-#define WIDTH  15 // WEIGHT
+#define HEIGHT 15
+#define WIDTH  15
 
 // margins chars
 
@@ -24,26 +24,43 @@ static const char* LOWER_RIGHT_CORNER = "┘";
 
 // ingame elements chars
 
+/// ASCII (obsolete)
+
 static const char BLANK = '.';
 static const char SNAKE = '@';
+static const char SNAKE_HEAD_L = '<';
+static const char SNAKE_HEAD_R = '>';
+static const char SNAKE_HEAD_U = '^';
+static const char SNAKE_HEAD_D = 'v';
 static const char FOOD  = '*';
+
+/// COLORFUL UNICODE
+
+#define ESC "\x1b["
+#define RESET "\x1b[0m"
+#define FG(COLOR, TEXT) ESC "3" #COLOR "m" TEXT RESET
+#define BG(COLOR, TEXT) ESC "4" #COLOR "m" TEXT RESET
+#define FGBG(FCOLOR, BCOLOR, TEXT) ESC "3" #FCOLOR "m" ESC "4" #BCOLOR "m" TEXT RESET
+
 static const char* BLANK2 = "..";
-static const char* SNAKE2 = "\x1b[42m  \x1b[0m";
-static const char* FOOD2  = "\x1b[43m  \x1b[0m";
+static const char* SNAKE2 = BG(2, "  ");
+static const char* FOOD2  = BG(3, "  ");;
+static const char* SNAKE_HEAD_L2 = FGBG(0, 2, "\xe2\x97\x80\xe2\x96\xa0");
+static const char* SNAKE_HEAD_R2 = FGBG(0, 2, "\xe2\x96\xa0\xe2\x96\xb6");
+static const char* SNAKE_HEAD_U2 = FGBG(0, 2, "\xe2\x97\xa2\xe2\x97\xa3");
+static const char* SNAKE_HEAD_D2 = FGBG(0, 2, "\xe2\x97\xa5\xe2\x97\xa4");
 
 // controls
 
 static const char UP_CH    = 'w';
 static const char DOWN_CH  = 's';
-static const char RIGHT_CH ='d';
+static const char RIGHT_CH = 'd';
 static const char LEFT_CH  = 'a';
-
 static const char QUIT_CH  = 'q';
 
 // gameplay settings
 
 static const int SCORE_LEN_RATIO = 1;
-
 static const int MOVE_DELAY = 200000; // ms
 
 /************************************************/
@@ -113,7 +130,7 @@ void display_field(char field[HEIGHT][WIDTH], int score)
     int i;
     int j;
     system("clear");
-    printf("\x1b[37mKEYS: WASD, Q to quit\x1b[0m\n");
+    printf(FG(7, "KEYS: WASD, Q to quit\n"));
     // printf("─────\n");
     display_upper_margin();
     for (i = 0; i < HEIGHT; ++i)
@@ -130,20 +147,36 @@ void display_field(char field[HEIGHT][WIDTH], int score)
             {
                 printf("%s", SNAKE2);
             }
+            else if (fch == SNAKE_HEAD_L)
+            {
+                printf("%s", SNAKE_HEAD_L2);
+            }
+            else if (fch == SNAKE_HEAD_R)
+            {
+                printf("%s", SNAKE_HEAD_R2);
+            }
+            else if (fch == SNAKE_HEAD_U)
+            {
+                printf("%s", SNAKE_HEAD_U2);
+            }
+            else if (fch == SNAKE_HEAD_D)
+            {
+                printf("%s", SNAKE_HEAD_D2);
+            }
             else if (fch == FOOD)
             {
                 printf("%s", FOOD2);
             }
             else
             {
-                printf("ERROR");
+                printf("%c%c", fch, fch);
             }
 
         }
         printf("%s\n", VERTICAL_MARGIN);
     }
     display_lower_margin();
-    printf("SCORE: \033[31m%4d\033[0m\n", score);
+    printf("SCORE: " FG(1, "%4d") "\n", score);
 }
 
 int validate_food_point(Point food_point, Snake* snakep)
@@ -193,9 +226,27 @@ void update_field(char field[HEIGHT][WIDTH], Snake* snakep, Point food_point)
         }
     }
 
-    for (i = 0; i < snakep->len; ++i)
+    Point p = snakep->cells[snakep->len - 1];
+    if (snakep->dir == LEFT)
     {
-        field[snakep->cells[i].x][snakep->cells[i].y]= SNAKE;
+        field[p.x][p.y] = SNAKE_HEAD_L;
+    }
+    else if (snakep->dir == RIGHT)
+    {
+        field[p.x][p.y] = SNAKE_HEAD_R;
+    }
+    else if (snakep->dir == UP)
+    {
+        field[p.x][p.y] = SNAKE_HEAD_U;
+    }
+    else if (snakep->dir == DOWN)
+    {
+        field[p.x][p.y] = SNAKE_HEAD_D;
+    }
+    for (i = 0; i < snakep->len - 1; ++i)
+    {
+        p = snakep->cells[i];
+        field[p.x][p.y] = SNAKE;
     }
 }
 

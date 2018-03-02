@@ -5,11 +5,11 @@ But it turned out to be more complicated than I thought it would be.
 
 So this is just a bad snake game.  
 
-#### My highscore
+![Screenshot](https://user-images.githubusercontent.com/22116479/36927367-d2a126aa-1e85-11e8-8aff-be0b19da08bd.png "Screenshot")
 
- ![My highscore](https://user-images.githubusercontent.com/22116479/32595960-67f7d654-c53a-11e7-8ded-c19821fe5397.png "My highscore")
-  
-Try to beat it )  
+[Asciinema](https://asciinema.org/a/Oak0l8wA7EpE6LoghbBPPzgJ7)
+
+## Running
 
 Run it with `make run`.  
 Keys are `WASD`. `Q` to quit.  
