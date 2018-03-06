@@ -11,6 +11,8 @@ So this is just a bad snake game.
 
 ## Running
 
+Requires gcc and a terminal which supports ANSI escape codes and 16 colors.  
+
 Run it with `make run`.  
 Keys are `WASD`. `Q` to quit.  
 
